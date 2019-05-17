@@ -35,14 +35,12 @@ def int_to_intX(val, size):
     if val > 999999999:
       raise OverByte('COAM cannot be larger than 999999999!')
     val = np.int32(val)
-    val = np.array(val, dtype=val.dtype)
-    val.byteswap(True) # Convert 32-bit little-endian to big-endian
   elif size == 8:
     if val > 255:
       raise OverByte('FRS Memory cannot be larger than 255!')
     val = np.int8(val)
-    val = np.array(val, dtype=val.dtype)
-    val.byteswap(True) # Convert 8-bit little-endian to big-endian
+  val = np.array(val, dtype=val.dtype)
+  val.byteswap(True) # Convert from little-endian to big-endian
   return val
 
 def write_APGD(val, APGD, int_size, offsets):
