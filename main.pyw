@@ -31,15 +31,17 @@ def str_to_bytes(name):
   return bytes(hex_name)
 
 def int_to_intX(val, size):
-  l = len(val)
-  val = int(val)
   if size == 32:
-    val = unpack("<I", pack(">I", val))[0] # Convert 32-bit little-endian to big-endian
     val = np.int32(val)
+    val = np.array(val, dtype=val.dtype)
+    val.byteswap(True) # Convert 32-bit little-endian to big-endian
   elif size == 8:
-    if l > 3:
+    val = int(val)
+    if val > 255:
       raise OverByte('FRS Memory cannot be larger than 1 byte!')
     val = np.int8(val)
+    val = np.array(val, dtype=val.dtype)
+    val.byteswap(True) # Convert 8-bit little-endian to big-endian
   return val
 
 def write_APGD(val, APGD, int_size, offsets):
@@ -103,7 +105,7 @@ def apply(pilot, ac, coam, frs, APGD, GAMEDAT):
       write_APGD(frs, APGD, int_size=8, offsets=[FRS_MEMORY_OFFSET])
     tk.messagebox.showinfo('Success!', 'Applied all changes!')
   except Exception as err:
-    tk.messagebox.showinfo("Error:", err)
+    tk.messagebox.showinfo("Error", err)
 
 def init_ui(window, root_dir):
   window.title('ACFA Save Editor')
