@@ -2,7 +2,6 @@ import mmap
 import numpy as np
 import tkinter as tk
 from exceptions import *
-from struct import pack, unpack
 from getpass import getuser
 from tkinter.filedialog import askdirectory
 from tkinter import messagebox
