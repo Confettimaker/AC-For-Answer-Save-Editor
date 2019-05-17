@@ -6,7 +6,9 @@ from getpass import getuser
 from tkinter.filedialog import askdirectory
 from tkinter import messagebox
 
-STR_LEN = 24
+STR_LEN = 24 # bytes
+FRS_SIZE = 1
+COAM_SIZE = 4
 
 EMPTY = 0x0
 
@@ -81,10 +83,10 @@ def read_data(APGD):
       temp += ac[x]
     ac = temp
     mm.seek(APGD_COAM_OFFSET)
-    coam = mm.read(4)
+    coam = mm.read(COAM_SIZE)
     coam = str(int.from_bytes(coam, "big"))
     mm.seek(FRS_MEMORY_OFFSET)
-    frs = mm.read(1)
+    frs = mm.read(FRS_SIZE)
     frs = str(int.from_bytes(frs, "big"))
   return (pilot, ac, coam, frs)
 
