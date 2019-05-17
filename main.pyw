@@ -30,14 +30,16 @@ def str_to_bytes(name):
   return bytes(hex_name)
 
 def int_to_intX(val, size):
+  val = int(val)
   if size == 32:
+    if val > 999999999:
+      raise OverByte('COAM cannot be larger than 999999999!')
     val = np.int32(val)
     val = np.array(val, dtype=val.dtype)
     val.byteswap(True) # Convert 32-bit little-endian to big-endian
   elif size == 8:
-    val = int(val)
     if val > 255:
-      raise OverByte('FRS Memory cannot be larger than 1 byte!')
+      raise OverByte('FRS Memory cannot be larger than 255!')
     val = np.int8(val)
     val = np.array(val, dtype=val.dtype)
     val.byteswap(True) # Convert 8-bit little-endian to big-endian
