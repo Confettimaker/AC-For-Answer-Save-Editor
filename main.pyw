@@ -110,20 +110,27 @@ def apply(pilot, ac, coam, frs, APGD, GAMEDAT):
 
 def init_ui(window, root_dir):
   window.title('ACFA Save Editor')
+  tk.Label(window, text='Pilot name: ').grid(row=0)
+  tk.Label(window, text='AC name: ').grid(row=1)
+  tk.Label(window, text='COAM (money): ').grid(row=2)
+  tk.Label(window, text='FRS Memory: ').grid(row=3)
+  e_p_name = tk.Entry(window)
+  e_p_name.grid(row=0, column=1)
+  e_ac_name = tk.Entry(window)
+  e_ac_name.grid(row=1, column=1)
+  e_coam = tk.Entry(window)
+  e_coam.grid(row=2, column=1)
+  e_frs_memory = tk.Entry(window)
+  e_frs_memory.grid(row=3, column=1)
   messagebox.showinfo('Open Save Folder', 'Ex: GAMEDATXXXX')
   directory = askdirectory(initialdir=root_dir)
   APGD = directory + '/APGD.dat'
   GAMEDAT = directory + '/' + directory.split('/')[-1] + '_CONTENT'
-  for row, (name, data) in enumerate(zip((
-        'Pilot name',
-        'AC name',
-        'COAM (money)',
-        'FRS Memory'
-    ), read_data(APGD))):
-        tk.Label(window, text=f'{name}: ').grid(row=row)
-        e = tk.Entry(window)
-        e.grid(row=row, column=1)
-        e.insert(0, data)
+  p, a, c, f = read_data(APGD)
+  e_p_name.insert(0, p)
+  e_ac_name.insert(0, a)
+  e_coam.insert(0, c)
+  e_frs_memory.insert(0, f)
   b_apply = tk.Button(window, text='Apply', width=10, command=lambda: apply(e_p_name.get(), e_ac_name.get(), e_coam.get(), e_frs_memory.get(), APGD, GAMEDAT)).grid(row=4, column=0)
   b_quit = tk.Button(window, text='Quit', width=10, command=window.destroy).grid(row=4, column=1)
   return window
