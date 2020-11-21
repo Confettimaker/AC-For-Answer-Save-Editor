@@ -20,6 +20,12 @@ GAMEDAT_PILOT_OFFSET = 0x5
 GAMEDAT_AC_NAME_OFFSET = 0x45
 GAMEDAT_COAM_OFFSET = 0x108
 
+APGD_COCKPIT_COLOR_OFFSET = 0x7adb #0-22
+
+APGD_COLLARED_RANK = 0x7b4e #1-31
+
+FRS_MEMORY_BANKS_OFFSET = 0x12E #7 banks with 4 slots each, 1 spot between banks
+
 FRS_MEMORY_OFFSET = 0x793F # Only appears in APGD.dat
 
 def str_to_bytes(name):
@@ -88,10 +94,16 @@ def read_data(APGD):
     mm.seek(FRS_MEMORY_OFFSET)
     frs = mm.read(FRS_SIZE)
     frs = str(int.from_bytes(frs, "big"))
-  return (pilot, ac, coam, frs)
+    mm.seek(APGD_COCKPIT_COLOR_OFFSET)
+    cockpit = mm.read(FRS_SIZE)
+    cockpit = str(int.from_bytes(cockpit, "big"))
+    mm.seek(APGD_COLLARED_RANK)
+    rank = mm.read(FRS_SIZE)
+    rank = str(int.from_bytes(rank, "big"))
+  return (pilot, ac, coam, frs, cockpit, rank)
 
 
-def apply(pilot, ac, coam, frs, APGD, GAMEDAT):
+def apply(pilot, ac, coam, frs, APGD, GAMEDAT, MAX_TUNE, COCKPIT, RANK):
   try:
     if pilot != '':
       write_APGD(pilot, APGD, int_size=0, offsets=[APGD_FIRST_PILOT_OFFSET, APGD_SECOND_PILOT_OFFSET])
@@ -104,16 +116,36 @@ def apply(pilot, ac, coam, frs, APGD, GAMEDAT):
       write_GAMEDAT(coam, GAMEDAT, int_size=32, offsets=[GAMEDAT_COAM_OFFSET])
     if frs != '':
       write_APGD(frs, APGD, int_size=8, offsets=[FRS_MEMORY_OFFSET])
+    if COCKPIT != '':
+      c = int(COCKPIT)
+      if c >= 0 and c <= 22:
+        write_APGD(c, APGD, int_size=8, offsets=[APGD_COCKPIT_COLOR_OFFSET])
+      else:
+        raise OverByte("Cockpit Theme Number C must fit 0 <= C <= 22!")
+    if RANK != '':
+      r = int(RANK)
+      if r > 0 and r <= 31:
+        write_APGD(r, APGD, int_size=8, offsets=[APGD_COLLARED_RANK])
+      else:
+        raise OverByte("Collared Rank R must fit 1 <= R <= 31!")
+    if MAX_TUNE.get():
+      frs_offset = FRS_MEMORY_BANKS_OFFSET
+      for bank in range(28):
+        write_APGD(255, APGD, int_size=8, offsets=[frs_offset + bank])
     tk.messagebox.showinfo('Success!', 'Applied all changes!')
   except Exception as err:
     tk.messagebox.showinfo("Error", err)
 
 def init_ui(window, root_dir):
+  MAX_TUNE = tk.IntVar()
   window.title('ACFA Save Editor')
   tk.Label(window, text='Pilot name: ').grid(row=0)
   tk.Label(window, text='AC name: ').grid(row=1)
   tk.Label(window, text='COAM (money): ').grid(row=2)
   tk.Label(window, text='FRS Memory: ').grid(row=3)
+  tk.Label(window, text='Cockpit Theme #(0-22): ').grid(row=4)
+  tk.Label(window, text='Collared Rank (1-31): ').grid(row=5)
+  tk.Checkbutton(window, text="Max Tune?", variable=MAX_TUNE).grid(row=6)
   e_p_name = tk.Entry(window)
   e_p_name.grid(row=0, column=1)
   e_ac_name = tk.Entry(window)
@@ -122,17 +154,23 @@ def init_ui(window, root_dir):
   e_coam.grid(row=2, column=1)
   e_frs_memory = tk.Entry(window)
   e_frs_memory.grid(row=3, column=1)
+  e_cockpit = tk.Entry(window)
+  e_cockpit.grid(row=4, column=1)
+  e_rank = tk.Entry(window)
+  e_rank.grid(row=5, column=1)
   messagebox.showinfo('Open Save Folder', 'Ex: GAMEDATXXXX')
   directory = askdirectory(initialdir=root_dir)
   APGD = directory + '/APGD.dat'
   GAMEDAT = directory + '/' + directory.split('/')[-1] + '_CONTENT'
-  p, a, c, f = read_data(APGD)
+  p, a, c, f, cockpit, rank = read_data(APGD)
   e_p_name.insert(0, p)
   e_ac_name.insert(0, a)
   e_coam.insert(0, c)
   e_frs_memory.insert(0, f)
-  b_apply = tk.Button(window, text='Apply', width=10, command=lambda: apply(e_p_name.get(), e_ac_name.get(), e_coam.get(), e_frs_memory.get(), APGD, GAMEDAT)).grid(row=4, column=0)
-  b_quit = tk.Button(window, text='Quit', width=10, command=window.destroy).grid(row=4, column=1)
+  e_cockpit.insert(0, cockpit)
+  e_rank.insert(0, rank)
+  b_apply = tk.Button(window, text='Apply', width=10, command=lambda: apply(e_p_name.get(), e_ac_name.get(), e_coam.get(), e_frs_memory.get(), APGD, GAMEDAT, MAX_TUNE, e_cockpit.get(), e_rank.get())).grid(row=7, column=0)
+  b_quit = tk.Button(window, text='Quit', width=10, command=window.destroy).grid(row=7, column=1)
   return window
 
 
